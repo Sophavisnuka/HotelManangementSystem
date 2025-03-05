@@ -35,17 +35,18 @@ public class Room {
         }
     }
 
-    public boolean assignRoom(String type, int reservationID) {
+    public int assignRoom(String type, int reservationID) {
         for (String[] room : roomList) {
             if (room[1].equalsIgnoreCase(type) && room[3].equalsIgnoreCase("Yes")) {
                 room[3] = "No"; // Mark as unavailable
                 saveRooms();
-                System.out.println("Assigned Room ID: " + room[0] + " | Price: $" + room[2]);
-                return true;
+                int assignedRoomNumber = Integer.parseInt(room[0]);
+                System.out.println("Assigned Room ID: " + assignedRoomNumber + " | Price: $" + room[2]);
+                return assignedRoomNumber;
             }
         }
         System.out.println("No available rooms for " + type);
-        return false;
+        return -1;
     }
 
     private void saveRooms() {
