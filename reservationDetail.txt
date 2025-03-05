@@ -6,3 +6,11 @@ Check-Out Date: 2025-03-15
 Duration of Stay: 3 days
 Reservation Id: 1
 
+Reservation detail:
+Guest: Nuka
+Phone Number: 016260218
+Check-In Date: 2025-03-15
+Check-Out Date: 2025-03-17
+Duration of Stay: 2 days
+Room number: 102
+Reservation Id: 1

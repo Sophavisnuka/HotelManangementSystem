@@ -15,8 +15,9 @@ public class UserReservation {
     private String userPhoneNum;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
+    private String roomType;
     private int durationOfStay;
-
+    private int roomNumber;
     private static int id = 0;
     private static ArrayList <UserReservation> reservationList = new ArrayList<>();
     private Room roomManager = new Room();
@@ -27,12 +28,14 @@ public class UserReservation {
         this.checkOutDate = LocalDate.now();
         this.reservationID = generateReservationID();
     }
-    public UserReservation(String userName, String userPhoneNum, LocalDate checkInDate, LocalDate checkOutDate, int durationOfStay, int reservationID) {  
+    public UserReservation(String userName, String userPhoneNum, LocalDate checkInDate, LocalDate checkOutDate, int durationOfStay, String roomType, int roomNumber, int reservationID) {  
         this.userName = userName;
         this.userPhoneNum = userPhoneNum;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate; 
         this.durationOfStay = durationOfStay;
+        this.roomType = roomType;
+        this.roomNumber = roomNumber;
         this.reservationID = reservationID;
     }
     // Static method to get total reservations
@@ -52,10 +55,10 @@ public class UserReservation {
         this.userPhoneNum = User.getPhoneNumber();
         System.out.println("\n--- Enter Reservation Details ---");
         System.out.print("Choose room type (Single/Double): ");
-        String roomType = input.nextLine().trim();
+        roomType = input.nextLine().trim();
+        roomNumber = roomManager.assignRoom(roomType, reservationID);
         Room.displayAvailableRooms(roomType);
-        boolean isRoomAssigned = roomManager.assignRoom(roomType, reservationID);
-        if (!isRoomAssigned) {
+        if (roomNumber == -1) {
             System.out.println("No available rooms. Please try again later.");
             return;
         }
@@ -78,9 +81,10 @@ public class UserReservation {
             return; // Exit the method if the date is invalid
         }
         reservationID = generateReservationID();
-        UserReservation newReser = new UserReservation(userName, userPhoneNum, checkInDate, checkOutDate, durationOfStay, reservationID);
+        UserReservation newReser = new UserReservation(userName, userPhoneNum, checkInDate, checkOutDate, durationOfStay, roomType, roomNumber, reservationID);
         reservationList.add(newReser);
         saveReservationToFile(newReser);
+        System.out.println("Room Number: " + roomNumber);
         System.out.println("Reservation successful! Assigned reservation ID: " + reservationID);
         System.out.println("Returning to main menu...\n");
     }
@@ -93,7 +97,7 @@ public class UserReservation {
             if (reservation.reservationID == cancelID) {
                 reservationList.remove(reservation);
                 roomManager.updateStatus(reservation.reservationID, true);
-                System.out.println("Reservation " + cancelID + " has been cancelled.");
+                System.out.println("Reservation " + cancelID + "| Room number: " + roomNumber + "is canceled");
                 return;
             }
         }
@@ -123,6 +127,7 @@ public class UserReservation {
         "Check-In Date: " + checkInDate + "\n" +
         "Check-Out Date: " + checkOutDate + "\n" +
         "Duration of Stay: " + durationOfStay + " days\n" +
+        "Room number: " + roomNumber + "\n" +
         "Reservation Id: " + reservationID;
     }
     public void displayUserReservations () {
