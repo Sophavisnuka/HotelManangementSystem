@@ -1,0 +1,8 @@
+Reservation detail:
+Guest: Tyty
+Phone Number: 123456789
+Check-In Date: 2025-03-12
+Check-Out Date: 2025-03-15
+Duration of Stay: 3 days
+Reservation Id: 1
+
