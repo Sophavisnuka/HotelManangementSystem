@@ -1,5 +1,5 @@
-101,Single bed,50.0,No
-102,Single bed,50.0,No
+101,Single bed,50.0,Yes
+102,Single bed,50.0,Yes
 103,Single bed,50.0,Yes
 104,Single bed,50.0,Yes
 105,Single bed,50.0,Yes

@@ -35,7 +35,7 @@ public class BookingMenu {
                         System.out.println("------------------------------\n");
                         break;
                     case 3:
-                        reservation.cancelReservation();
+                        // reservation.cancelReservation();
                         break;
                     case 4:
                         reservation.displayUserReservations();
