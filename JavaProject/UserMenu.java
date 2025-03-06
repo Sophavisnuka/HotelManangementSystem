@@ -37,10 +37,7 @@ public class UserMenu {
             } catch (PhoneNumberException e) {
                 // Handle the exception for non-numeric input
                 System.out.println(e.getMessage());  // Show the error message for non-numeric input
-            } catch (NumberFormatException e) {
-                // Handle the case where the input can't be parsed as an integer
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
+            } 
         }
     }
 

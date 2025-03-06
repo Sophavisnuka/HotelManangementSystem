@@ -1,16 +1,4 @@
-Reservation detail:
-Guest: Tyty
-Phone Number: 123456789
-Check-In Date: 2025-03-12
-Check-Out Date: 2025-03-15
-Duration of Stay: 3 days
-Reservation Id: 1
-
-Reservation detail:
-Guest: Nuka
-Phone Number: 016260218
-Check-In Date: 2025-03-15
-Check-Out Date: 2025-03-17
-Duration of Stay: 2 days
-Room number: 102
-Reservation Id: 1
+1,Hour,09554323032,2025-03-13,2025-03-17,4,103,201
+1,Nake,092864087,2025-03-15,2025-03-17,2,104,202,203
+1,Nuka,016260218,2025-03-15,2025-03-18,3,204
+1,Nuka,016260218,2025-03-24,2025-03-28,4,105
