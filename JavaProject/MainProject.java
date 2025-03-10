@@ -41,7 +41,7 @@ public class MainProject {
                         break;
                     case 3:
                         System.out.println("Exiting system");
-                        return;
+                        // scan.close;
                     default:
                         System.out.println("Invalid choice!");
                         break;

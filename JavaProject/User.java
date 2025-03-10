@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 // User class implementing Authentication interface
 public class User implements Authentication {
@@ -102,13 +101,27 @@ public class User implements Authentication {
 
         return true;
     }
-
     @Override 
     public boolean login (String email, String password) {
         // Validate input fields
         if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
             System.out.println("Please input all the requirement");
             return false;
+        }
+        try (Connection con = MySQLConnection.getConnection()) {
+            String query = "SELECT * FROM users WHERE email = ? AND password = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, email);
+            statement.setString(2, password);
+    
+            if (statement.executeQuery().next()) {
+                System.out.println("Login successful!");
+                return true;
+            } else {
+                System.out.println("Login failed! Incorrect email or password.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Database error: " + e.getMessage());
         }
         return true;
         // User loggedInUser = findUser(password, email);

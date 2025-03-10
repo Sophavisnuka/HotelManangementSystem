@@ -1,7 +1,8 @@
 -- create database hotelManagement;
 -- use hotelManagement;
 
-create table user (
+
+create table users (
     userId INT auto_increment PRIMARY KEY,
     userName varchar(100) not null,
     phoneNumber varchar(20) not null,

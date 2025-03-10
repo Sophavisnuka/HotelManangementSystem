@@ -58,7 +58,7 @@ public class UserMenu {
             String password = scanner.nextLine();
 
             // String query to insert new user
-            String query = "INSERT INTO user (username, phoneNumber, email, passwords) VALUES (?, ?, ?, ?)";
+            String query = "INSERT INTO users (username, phoneNumber, email, passwords) VALUES (?, ?, ?, ?)";
 
             // Execute the query using PreparedStatement
             int rowAffected = MySQLConnection.executePreparedUpdate(query, username, phone, email, password);
