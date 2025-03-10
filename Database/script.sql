@@ -1,9 +1,9 @@
 -- create database hotelManagement;
 -- use hotelManagement;
 
-create table user (
-    userRole ENUM('admin', 'customer') default 'customer'not null,
-    UserName varchar(100) not null,
+create table users (
+    userId INT auto_increment PRIMARY KEY,
+    userName varchar(100) not null,
     phoneNumber varchar(20) not null,
     email varchar (100) not null,
     passwords varchar (100) not null

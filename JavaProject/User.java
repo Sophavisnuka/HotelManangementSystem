@@ -85,50 +85,20 @@ public class User implements Authentication {
         }
         return false;
     }
-    @Override 
-    public boolean register (int userId, String UserName, String phoneNumber, String email, String password, String role) {
-        // Validate input fields
-        if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
-            System.out.println("Please input all the requirement");
-            return false;
-        }
-        if (role == null || role.isEmpty()) {
-            role = "customer";
-        }
     
-        try (Connection con = MySQLConnection.getConnection()) {
-            // Check if the user already exists
-            String checkQuery = "SELECT * FROM users WHERE email = ? OR UserName = ?";
-            PreparedStatement checkStatement = con.prepareStatement(checkQuery);
-            checkStatement.setString(1, email);
-            checkStatement.setString(2, UserName);
-            if (checkStatement.executeQuery().next()) {
-                System.out.println("User already exists.");
-                return false;
-            }
     
-            // Insert new user
-            String insertQuery = "INSERT INTO users (userId, UserName, phoneNumber, email, password, role) VALUES (?, ?, ?, ?, ?, ?)";
-            PreparedStatement insertStatement = con.prepareStatement(insertQuery);
-            insertStatement.setInt(1, userId);
-            insertStatement.setString(2, UserName);
-            insertStatement.setString(3, phoneNumber);
-            insertStatement.setString(4, email);
-            insertStatement.setString(5, password);
-            insertStatement.setString(6, role);
-    
-            int rowsInserted = insertStatement.executeUpdate();
-            if (rowsInserted > 0) {
-                System.out.println("Registration successful!");
-                return true;
-            }
-        } catch (SQLException e) {
-            System.out.println("Database error: " + e.getMessage());
-        }
-        // Create and add new user to the list
-        // User newUser = new User(userId, UserName, phoneNumber, email, password, role);
-        // userList.add(newUser);
-        // saveUserToFile(newUser);
+    public boolean register (String UserName) {
+        // // Validate input fields
+        // if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
+        //     System.out.println("Please input all the requirement");
+        //     return false;
+        // }
+
+        // Check if username already exists
+        // if (checkFromFIle(userId, UserName, phoneNumber, email, password, role)) {
+        //     return false;
+        // }
+
         return true;
     }
     @Override 
