@@ -1,5 +1,7 @@
 package JavaProject;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class UserMenu {
@@ -79,34 +81,35 @@ public class UserMenu {
     }
 
     private void loginUser(Scanner scanner, int attempt, int maxAttempt) {
-        // while (attempt < maxAttempt) {
-        //     System.out.println("------------------------------");
-        //     System.out.println("\n--- Login ---");
-        //     System.out.print("Enter email: ");
-        //     String loginEmail = scanner.nextLine();
-        //     System.out.print("Enter password: ");
-        //     String loginPassword = scanner.nextLine();
+        System.out.println("------------------------------");
+        System.out.println("\n--- Login ---");
 
-        //     // User account = User.findUser(loginEmail, loginPassword); 
-        //     if (account == null) {
-        //         System.out.println("Account not found. Please register.");
-        //         attempt++;
-        //         if (attempt >= maxAttempt) {
-        //             System.out.println("Too many failed attempts. Returning to main menu.");
-        //             return;  // Exit the system after max attempts
-        //         }
-        //         continue; // Allow the user to try logging in again
-        //     } else {
-        //         BookingMenu bookingMenu = new BookingMenu();
-        //         bookingMenu.bookingMenu();
-        //         // break;
-        //     }
-        //     attempt++;
-        //     if (attempt >= maxAttempt) {
-        //         System.out.println("Too many failed attempts. Returning to main menu.");
-        //         return;  // Return to the main menu after max attempts
-        //     }
-        //     System.out.println("------------------------------");
-        // }
+        System.out.print("Enter email: ");
+        String loginEmail = scanner.nextLine();
+
+        System.out.print("Enter password: ");
+        String loginPassword = scanner.nextLine();
+
+        // String query to verify user
+        String query = "SELECT * FROM users WHERE email = ? AND passwords = ?";
+
+        // Execute the query using PreparedStatement
+        ResultSet rs = MySQLConnection.executePreparedQuery(query, loginEmail, loginPassword);
+
+        try {
+            if (rs == null || !rs.next()) {
+                System.out.println("User not found!\nPlease login!");
+            }
+            System.out.println("Login successful");
+            BookingMenu bookingMenu = new BookingMenu();
+            bookingMenu.bookingMenu();
+
+        } catch (SQLException e) {
+            System.out.println("Error while logging in the user!");
+            e.printStackTrace();
+        } finally {
+            MySQLConnection.closeResultSet(rs);
+        }
+
     }
 }
