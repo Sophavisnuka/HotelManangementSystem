@@ -69,9 +69,17 @@ public class UserMenu {
             String email = scanner.nextLine();
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
+            String role = "customer";
+              // Check if the user wants to be an admin
+            String adminEmail = "admin@example.com";  // Hardcoded admin email (for example)
+            String adminCode = "admin123";  // Hardcoded admin code (for example)
+            // Check if the email or password matches the admin credentials
+            if (email.equals(adminEmail) || password.equals(adminCode)) {
+                role = "admin";  // Assign role as admin if valid admin credentials
+            }
             // Register the user
-            Customer user = new Customer(username, phone, email, password);
-            boolean registrationSuccess = user.register(username, phone, email, password);
+            Customer user = new Customer(userId, username, phone, email, password, role);
+            boolean registrationSuccess = user.register(userId, username, phone, email, password, role);
             if (registrationSuccess) {
                 System.out.println("Registration successful!\n");
                 BookingMenu bookingMenu = new BookingMenu();
@@ -97,7 +105,7 @@ public class UserMenu {
             System.out.print("Enter password: ");
             String loginPassword = scanner.nextLine();
 
-            User account = User.findUser(loginEmail, loginPassword); 
+            // User account = User.findUser(loginEmail, loginPassword); 
             if (account == null) {
                 System.out.println("Account not found. Please register.");
                 attempt++;

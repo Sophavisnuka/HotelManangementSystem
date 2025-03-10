@@ -6,25 +6,32 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 // User class implementing Authentication interface
 public class User implements Authentication {
     
     // User attributes
+    private static int userId;
     private static String UserName;
     private static String phoneNumber;
     protected String email;
     protected String password;
+    private String role;
 
     // Static list to store all registered users
     protected static ArrayList <User> userList = new ArrayList<>();
 
     // Constructor to initialize a new user
-    public User (String UserName, String phoneNumber, String email, String password) {
+    public User (int userId, String UserName, String phoneNumber, String email, String password, String role) {
+        User.userId = userId;
         User.UserName = UserName;
         User.phoneNumber = phoneNumber;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     // Constructor for login purpose
@@ -40,7 +47,7 @@ public class User implements Authentication {
         return phoneNumber;
     }
     // Method to check if any input field is empty
-    public boolean CheckInput (String UserName, String phoneNumber, String email, String password) {
+    public boolean CheckInput (int userId, String UserName, String phoneNumber, String email, String password, String role) {
         if (UserName.isBlank() || password.isBlank() || email.isBlank() || phoneNumber.isBlank()) {
             return true;
         } 
@@ -49,22 +56,23 @@ public class User implements Authentication {
     public void saveUserToFile (User user) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("CustomerAcc.txt", true));
-            writer.write(User.UserName + "," +  User.phoneNumber + "," + user.email + "," + user.password);
+            writer.write(User.userId + "," + User.UserName + "," +  User.phoneNumber + "," + user.email + "," + user.password + "," + user.role);
             writer.newLine();
             writer.close();
         } catch (IOException e) {
             System.out.println("File doesn't exist" + e.getMessage());
         }
     }
-    public boolean checkFromFIle (String UserName, String phoneNumber, String email, String password) {
+    public boolean checkFromFIle (int userId, String UserName, String phoneNumber, String email, String password, String role) {
         try {
             String line;
             BufferedReader reader = new BufferedReader(new FileReader("CustomerAcc.txt"));
             while ((line = reader.readLine())  != null) {
                 String [] userData = line.split(",");
-                if (userData.length == 4) {
-                    String userName = userData[0];
-                    String userEmail = userData[2];
+                if (userData.length == 6) {
+                    // int id = userData[0];
+                    String userName = userData[1];
+                    String userEmail = userData[3];
                     if ( userName.equals(UserName) || userEmail.equals(email)) {
                         System.out.println("User already exist");
                         reader.close();
@@ -79,18 +87,31 @@ public class User implements Authentication {
         return false;
     }
     @Override 
-    public boolean register (String UserName, String phoneNumber, String email, String password) {
+    public boolean register (int userId, String UserName, String phoneNumber, String email, String password, String role) {
         // Validate input fields
-        if (CheckInput(UserName, phoneNumber, email, password)) {
+        if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
             System.out.println("Please input all the requirement");
             return false;
         }
-        // Check if username already exists
-        if (checkFromFIle(UserName, phoneNumber, email, password)) {
-            return false;
+        try (Connection con = MySQLConnection.getConnection()) {
+            String checkQuery = "select * from users where email = ? or UserName = ?";
+            PreparedStatement checkStatement= con.prepareStatement(checkQuery);
+            checkStatement.setString(1, email);
+            checkStatement.setString(2, UserName);
+
+        } catch (SQLException e) {
+            System.out.println("Database error: " + e.getMessage());
         }
+        // Check if username already exists
+        // if (checkFromFIle(userId, UserName, phoneNumber, email, password, role)) {
+        //     return false;
+        // }
+        if (role == null || role.isEmpty()) {
+            role = "customer";
+        }
+
         // Create and add new user to the list
-        User newUser = new User(UserName, phoneNumber, email, password);
+        User newUser = new User(userId, UserName, phoneNumber, email, password, role);
         userList.add(newUser);
         saveUserToFile(newUser);
         return true;
@@ -99,48 +120,55 @@ public class User implements Authentication {
     @Override 
     public boolean login (String email, String password) {
         // Validate input fields
-        if (CheckInput(UserName, phoneNumber, email, password)) {
+        if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
             System.out.println("Please input all the requirement");
             return false;
         }
-        User loggedInUser = findUser(password, email);
-        if (loggedInUser != null) {
-            return true;
-        } else {
-            System.out.println("Fail attempt! Please try again");
-            return false;
-        }
+        return true;
+        // User loggedInUser = findUser(password, email);
+        // if (loggedInUser != null) {
+        //     if (loggedInUser.role.equals("admin")) {
+        //         System.out.println("Logged in as Admin.");
+        //         // Perform admin-specific actions
+        //     } else {
+        //         System.out.println("Logged in as Customer.");
+        //     }
+        //     return true;
+        // } else {
+        //     System.out.println("Fail attempt! Please try again");
+        //     return false;
+        // }
     }
     // Method to find a user by their username
-    public static User findUser(String email, String password) {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader("CustomerAcc.txt"));
-            String line;
-            while ((line = reader.readLine())  != null) {
-                String [] userData = line.split(",");
-                if (userData.length == 4) {
-                    String userEmail = userData[2];
-                    String userPassword = userData[3];
-
-                    if (userEmail.equals(email) && userPassword.equals(password)) {
-                        System.out.println("Login successful");
-                        return new User (userData[0], userData[1], userData[2], userData[3]);
-                    } 
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("File doesn't exist" + e.getMessage());
-        } finally {
-            try {
-                if (reader != null) {
-                    reader.close();  // Close the reader outside the loop
-                }
-            } catch (IOException e) {
-                System.out.println("Error closing file: " + e.getMessage());
-            }
-        }
-        System.out.println("Login failed: User does not exist.");
-        return null;
-    }
+    // public static User findUser(String email, String password) {
+    //     BufferedReader reader = null;
+    //     try {
+    //         reader = new BufferedReader(new FileReader("CustomerAcc.txt"));
+    //         String line;
+    //         while ((line = reader.readLine())  != null) {
+    //             String [] userData = line.split(",");
+    //             if (userData.length == 6) {
+    //                 String userEmail = userData[3];
+    //                 String userPassword = userData[4];
+    //                 String userRole = userData[5];
+    //                 if (userEmail.equals(email) && userPassword.equals(password)) {
+    //                     System.out.println("Login successful");
+    //                     // return new User (userData[0], userData[1], userData[2], userData[3], userData[4], userData[5]);
+    //                 } 
+    //             }
+    //         }
+    //     } catch (IOException e) {
+    //         System.out.println("File doesn't exist" + e.getMessage());
+    //     } finally {
+    //         try {
+    //             if (reader != null) {
+    //                 reader.close();  // Close the reader outside the loop
+    //             }
+    //         } catch (IOException e) {
+    //             System.out.println("Error closing file: " + e.getMessage());
+    //         }
+    //     }
+    //     System.out.println("Login failed: User does not exist.");
+    //     return null;
+    // }
 }
