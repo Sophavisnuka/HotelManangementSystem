@@ -86,34 +86,20 @@ public class User implements Authentication {
         }
         return false;
     }
-    @Override 
-    public boolean register (int userId, String UserName, String phoneNumber, String email, String password, String role) {
-        // Validate input fields
-        if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
-            System.out.println("Please input all the requirement");
-            return false;
-        }
-        try (Connection con = MySQLConnection.getConnection()) {
-            String checkQuery = "select * from users where email = ? or UserName = ?";
-            PreparedStatement checkStatement= con.prepareStatement(checkQuery);
-            checkStatement.setString(1, email);
-            checkStatement.setString(2, UserName);
+    
+    
+    public boolean register (String UserName) {
+        // // Validate input fields
+        // if (CheckInput(userId, UserName, phoneNumber, email, password, role)) {
+        //     System.out.println("Please input all the requirement");
+        //     return false;
+        // }
 
-        } catch (SQLException e) {
-            System.out.println("Database error: " + e.getMessage());
-        }
         // Check if username already exists
         // if (checkFromFIle(userId, UserName, phoneNumber, email, password, role)) {
         //     return false;
         // }
-        if (role == null || role.isEmpty()) {
-            role = "customer";
-        }
 
-        // Create and add new user to the list
-        User newUser = new User(userId, UserName, phoneNumber, email, password, role);
-        userList.add(newUser);
-        saveUserToFile(newUser);
         return true;
     }
 
