@@ -3,9 +3,8 @@ package JavaProject;
 import java.util.Scanner;
 
 public class BookingMenu {
-    public void bookingMenu() {
+    public void bookingMenu(Scanner scanner) {
         UserReservation reservation = new UserReservation();
-        Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("------------------------------\n");
             System.out.println("Booking Menu");
@@ -17,7 +16,7 @@ public class BookingMenu {
             System.out.print("Choose option: ");
             String input = scanner.nextLine();
             try {
-                PhoneNumberException.isNumberValid(input);
+                CheckInputException.isNumberValid(input);
                 int choice = Integer.parseInt(input);
                 switch (choice) {
                     case 1:
@@ -38,7 +37,6 @@ public class BookingMenu {
                         // reservation.cancelReservation();
                         break;
                     case 4:
-                        reservation.displayUserReservations();
                         break;
                     case 5:
                         System.out.println("Exiting system");
@@ -46,7 +44,7 @@ public class BookingMenu {
                     default:
                         break;
                 }
-            } catch (PhoneNumberException e) {
+            } catch (CheckInputException e) {
                 System.out.println(e.getMessage());
             }
         }

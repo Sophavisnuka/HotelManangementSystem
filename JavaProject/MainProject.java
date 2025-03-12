@@ -7,7 +7,6 @@ import java.sql.Connection;
 public class MainProject {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
-
         try {
             Connection conn = MySQLConnection.getConnection();
             if (conn != null) {
@@ -29,15 +28,16 @@ public class MainProject {
             System.out.print("Choose option: ");
             String input = scan.nextLine();
             try {
-                PhoneNumberException.isNumberValid(input);
+                CheckInputException.isNumberValid(input);
                 int choice = Integer.parseInt(input);
                 switch (choice) {
                     case 1:
-                        
+                        Admin AdminMenu = new Admin();
+                        AdminMenu.adminMenu(scan);
                         break;
                     case 2:
-                        UserMenu userMenu = new UserMenu();
-                        userMenu.accountMenu();
+                        CustomerMenu userMenu = new CustomerMenu();
+                        userMenu.accountMenu(scan);
                         break;
                     case 3:
                         System.out.println("Exiting system");
@@ -46,7 +46,7 @@ public class MainProject {
                         System.out.println("Invalid choice!");
                         break;
                 }
-            } catch (PhoneNumberException e) {
+            } catch (CheckInputException e) {
                 System.out.println(e.getMessage());
             }
         }

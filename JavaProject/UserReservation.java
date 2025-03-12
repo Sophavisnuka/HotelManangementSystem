@@ -10,13 +10,17 @@ import java.time.format.DateTimeFormatter;
 
 public class UserReservation {
     private int reservationID;
+    private int userId;
     private String userName;
     private String userPhoneNum;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private int durationOfStay;
-    private ArrayList<Integer> roomNumbers = new ArrayList<>();
+    private  int numRooms;
+    private String roomType;
+    private int roomNumber;
     private static int id = 0;
+    private ArrayList<Integer> roomNumbers = new ArrayList<>();
     private static ArrayList<UserReservation> reservationList = new ArrayList<>();
     private Room roomManager = new Room();
 
@@ -50,18 +54,16 @@ public class UserReservation {
     public void makeReservation() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         // Retrieve logged-in user details
-        this.userName = User.getUserName();
-        this.userPhoneNum = User.getPhoneNumber();
         System.out.println("\n--- Enter Reservation Details ---");
         System.out.print("Enter number of rooms to book: ");
-        int numRooms = input.nextInt();
+        numRooms = input.nextInt();
         input.nextLine();  // Consume newline
 
         for (int i = 0; i < numRooms; i++) {
             System.out.print("Choose room type for Room " + (i + 1) + " (Single/Double): ");
-            String roomType = input.nextLine().trim();
+            roomType = input.nextLine().trim();
             Room.displayAvailableRooms(roomType);
-            int roomNumber = roomManager.assignRoom(roomType, reservationID);
+            roomNumber = roomManager.assignRoom(roomType, reservationID);
             if (roomNumber == -1) {
                 System.out.println("No available rooms for " + roomType);
                 return;
@@ -86,7 +88,16 @@ public class UserReservation {
             System.out.println(e.getMessage());
             return;
         }
+        String query = "INSERT INTO reservation (reservationID, userId, checkInDate, checkOutDate, durationOfStay, numRooms, roomType, roomNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+        // Execute the query using PreparedStatement
+        int rowAffected = MySQLConnection.executePreparedUpdate(query, reservationID, userId, checkInDate, checkOutDate, durationOfStay, numRooms, roomType, roomNumber);
+
+        if (rowAffected > 0) {
+            System.out.println("User added successfully!");
+        } else {
+            System.out.println("Unable to insert new user.");
+        }
         reservationID = generateReservationID();
         UserReservation newReser = new UserReservation(userName, userPhoneNum, checkInDate, checkOutDate, durationOfStay, roomNumbers, reservationID);
         reservationList.add(newReser);
@@ -100,13 +111,6 @@ public class UserReservation {
             return LocalDate.parse(dateStr, formatter);
         } catch (java.time.format.DateTimeParseException e) {
             throw new InvalidDateFormatException("Invalid date format. Please use dd-MM-yyyy.");
-        }
-    }
-    public void displayUserReservations () {
-        for (UserReservation reservation : reservationList) {
-            System.out.println("\n--------------------------------");
-            System.out.println(reservation.toString());
-            System.out.println("--------------------------------");
         }
     }
     public void saveReservationToFile(UserReservation newReser) {
