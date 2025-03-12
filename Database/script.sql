@@ -8,14 +8,15 @@ create table users (
     phoneNumber varchar(20) not null,
     email varchar (100) not null,
     passwords varchar (100) not null
+    foreign key (userId) references reservation (userId)
 );  
 
 create table reservation (
-    reservationId int primary key,
-    userName varchar(100) not null,
-    userPhoneNumber varchar(20) not null,
-    checkIndate date not null,
-    checkOutdate date not null,
+    reservationID int auto_increment,
+    userId int auto_increment,
+    checkInDate date not null,
+    checkOutDate date not null,
     durationOfStay int,
-    foreign key (useName) references user (UserName);
+    roomNumbers int,
+    primary key (userId, reservationID),
 );

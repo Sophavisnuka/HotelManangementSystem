@@ -1,6 +1,8 @@
 package JavaProject;
 
+import java.util.Scanner;
+
 public interface Authentication {
-    boolean register(String UserName);
-    boolean login(String email, String password);
+    void registerUser(Scanner scanner);
+    void loginUser(Scanner scanner);
 }
