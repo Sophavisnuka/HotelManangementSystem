@@ -18,11 +18,11 @@ public class CustomerMenu extends User {
                 switch (choice) {
                     case 1:
                         // Registration process
-                        registerUser(scanner);
+                        // registerUser(scanner);
                         break;
                     case 2:
                         // Login process
-                        loginUser(scanner);
+                        // loginUser(scanner);
                         break;
                     case 0:
                         System.out.println("Exiting system");
@@ -37,4 +37,5 @@ public class CustomerMenu extends User {
             } 
         }
     }
+    
 }

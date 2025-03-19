@@ -14,7 +14,7 @@ public class MySQLConnection {
     private static final String PASSWORD = "1234"; //change password
     
     // Establish the connection
-    static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 
