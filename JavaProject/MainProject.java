@@ -32,12 +32,12 @@ public class MainProject {
                 int choice = Integer.parseInt(input);
                 switch (choice) {
                     case 1:
-                        Admin AdminMenu = new Admin();
-                        AdminMenu.adminMenu(scan);
+                        // Admin AdminMenu = new Admin();
+                        // AdminMenu.adminMenu(scan);
                         break;
                     case 2:
-                        CustomerMenu userMenu = new CustomerMenu();
-                        userMenu.accountMenu(scan);
+                        BookingMenu book = new BookingMenu();
+                        book.bookingMenu(scan);
                         break;
                     case 3:
                         System.out.println("Exiting system");

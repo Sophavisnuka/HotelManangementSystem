@@ -1,86 +1,35 @@
 package JavaProject;
 
+import javax.swing.*;
+import java.awt.Cursor;
+import java.awt.Font;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import java.awt.BorderLayout;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
-
+import gui.AdminGui;
 public class Admin extends User {
-    public void adminMenu (Scanner scanner) {
-        while (true) {
-            System.out.println("\n------------------------------\n");
-            System.out.println("1. Register");
-            System.out.println("2. Log in");
-            System.out.println("0. Exit");
-            System.out.print("Choose option: ");
-            String input = scanner.nextLine();
-            try {
-                // Check if the menu option input is a valid number first
-                CheckInputException.isNumberValid(input);  // This checks if the input is a number
-                int choice = Integer.parseInt(input);  // If valid, proceed to parse the choice
-                switch (choice) {
-                    case 1:
-                        // Registration process
-                        registerUser(scanner);
-                        break;
-                    case 2:
-                        // Login process
-                        loginUser(scanner);
-                        break;
-                    case 0:
-                        System.out.println("Exiting system");
-                        return;  // Exit the system
-                    default:
-                        System.out.println("Invalid choice! Please enter a valid option.");
-                        break;
-                }
-            } catch (CheckInputException e) {
-                // Handle the exception for non-numeric input
-                System.out.println(e.getMessage());  // Show the error message for non-numeric input
-            } 
-        }
-    }
-    @Override
-    protected void handlePostLogin (Scanner scanner, String email) {
-        System.out.println("Welcome, Admin");
-        while (true) {
-            System.out.println("\n------------Admin Menu-------------");
-            System.out.println("1. View customer");
-            System.out.println("2. Remove customer");
-            System.out.println("3. View Reservations");
-            System.out.println("4. Remove Reservations");
-            System.out.println("5. Exit");
-            System.out.println("Choose any option: ");
-            String input = scanner.nextLine();
-            try {
-                CheckInputException.isNumberValid(input);  // This checks if the input is a number
-                int choice = Integer.parseInt(input);  // If valid, proceed to parse the choice
-                switch (choice) {
-                    case 1:
-                        viewUsers();
-                        break;
-                    case 2:
-                        removeUsers(scanner);
-                        break;
-                    case 3: 
-                        break;
-                    case 4:
-                        break;
-                    case 5:
-                        System.out.println("Exit from admin");
-                        return;
-                    default:
-                        break;
-                }
-            } catch (CheckInputException e) {
-                // Handle the exception for non-numeric input
-                System.out.println(e.getMessage());  // Show the error message for non-numeric input
-            } 
-        }
-    }
+
+    private AdminGui adminGui;
+
     public void viewUsers() {
-        System.out.println("\n--- User List ---");
-    
+        JFrame frame = new JFrame("User List");
+        frame.setSize(470,350);
+        frame.setLocationRelativeTo(null);
+        String[] columnNames = {"User ID", "Username", "Email", "Role"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        JTable table = new JTable(model);
+        // Adjust row height
+        table.setRowHeight(30);
+        table.getColumnModel().getColumn(0).setPreferredWidth(30);
+        table.getColumnModel().getColumn(1).setPreferredWidth(70);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.setFont(new Font("Poppins", Font.PLAIN, 15));  // Set font size to 18
         String query = "SELECT userId, userName, email, role FROM users";
     
         try (PreparedStatement stmt = MySQLConnection.executePreparedQuery(query);
@@ -90,23 +39,196 @@ public class Admin extends User {
                 String userName = rs.getString("userName");
                 String email = rs.getString("email");
                 String role = rs.getString("role");
-                System.out.println(id + ". " + userName + " | " + email + " | " + role);
+                model.addRow(new Object[]{id, userName, email, role});
             }
         } catch (SQLException e) {
             System.out.println("Error fetching users!");
             e.printStackTrace();
         }
+        JScrollPane scrollPane = new JScrollPane(table);
+        //add exit button
+        JLabel exit = new JLabel("Home");
+        exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        exit.setFont(new Font("Poppins", Font.PLAIN, 18));
+        exit.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked (MouseEvent e) {
+                if (adminGui != null) {
+                    adminGui.dispose();
+                }
+                new AdminGui().setVisible(true);
+                frame.dispose();
+            }
+        });
+        // Panel for the exit button at the top
+        JPanel topPanel = new JPanel();
+        topPanel.add(exit);
+        // "Remove user" button
+        JButton removeButton = new JButton("Remove user");
+        removeButton.addActionListener(e -> removeRowMethod(table, model));
+        // Panel for the remove button at the bottom
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(removeButton);
+        // Adding components to the frame
+        frame.add(topPanel, BorderLayout.NORTH);         // Exit button at the top
+        frame.add(scrollPane, BorderLayout.CENTER);      // Table in the center
+        frame.add(bottomPanel, BorderLayout.SOUTH);      // Remove user button at the bottom
+        frame.setVisible(true);
     }
-    public void removeUsers (Scanner scanner) {
-        System.out.println("Enter user id to remove: ");
-        int userId = Integer.parseInt(scanner.nextLine());
-        String query = "DELETE FROM users WHERE userId = ?";
-        int rowAffected = MySQLConnection.executePreparedUpdate(query, userId);
-        if (rowAffected > 0) {
-            System.out.println("User remove successfully");
+    public void removeRowMethod (JTable table, DefaultTableModel model) {
+        int selectRow = table.getSelectedRow();
+        if (selectRow != -1) {
+            int userId = (int) model.getValueAt(selectRow, 0);
+            int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this user?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_NO_OPTION) {
+                String query = "DELETE FROM users WHERE userId = ?";
+                int rowAffected = MySQLConnection.executePreparedUpdate(query, userId);
+                if (rowAffected > 0) {
+                    model.removeRow(selectRow); // Remove from JTable
+                    JOptionPane.showMessageDialog(null, "User deleted successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Failed to delete user.");
+                }
+            }
         } else {
-            System.out.println("Can't find the user");
+            JOptionPane.showMessageDialog(null, "Please select the remove row");
         }
     }
-    
+    public void loadRooms() {
+        JFrame frame = new JFrame("All Rooms");
+        frame.setSize(470,350);
+        frame.setLocationRelativeTo(null);
+        String[] columnNames = {"roomId", "roomType", "roomPrice", "roomStatus"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        JTable table = new JTable(model);
+        // Adjust row height
+        table.setRowHeight(30);
+        table.getColumnModel().getColumn(0).setPreferredWidth(30);
+        table.getColumnModel().getColumn(1).setPreferredWidth(70);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.setFont(new Font("Poppins", Font.PLAIN, 15));  // Set font size to 18
+        String query = "SELECT * FROM room";  // Adjust table name if needed
+        
+        try {
+            ResultSet rs = MySQLConnection.executeQuery(query); // ✅ FIXED: Use executeQuery directly
+            while (rs.next()) {
+                int roomId = rs.getInt("roomId");
+                String roomType = rs.getString("roomType");
+                float roomPrice = rs.getFloat("roomPrice");
+                String roomStatus = rs.getString("roomStatus");
+                model.addRow(new Object[]{roomId, roomType, roomPrice, roomStatus});
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching users!");
+            e.printStackTrace();
+        }
+        JScrollPane scrollPane = new JScrollPane(table);
+        //add exit button
+        JLabel exit = new JLabel("Home");
+        exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        exit.setFont(new Font("Poppins", Font.PLAIN, 18));
+        exit.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked (MouseEvent e) {
+                if (adminGui != null) {
+                    adminGui.dispose();
+                }
+                new AdminGui().setVisible(true);
+                frame.dispose();
+            }
+        });
+        // Panel for the exit button at the top
+        JPanel topPanel = new JPanel();
+        topPanel.add(exit);
+        // Adding components to the frame
+        JPanel bottomPanel = new JPanel();
+        JButton changeStatus = new JButton("Change rooms status");
+        changeStatus.addActionListener(e -> updateRoomStatus(table, model));
+        
+        JButton changePrice = new JButton("Change rooms Price");
+        changePrice.addActionListener(e -> updateRoomPrice(table, model));
+        changePrice.setBounds(150, 350, 200, 50);
+        // Panel for the remove button at the bottom
+        // JPanel bottomPanel2 = new JPanel();
+        bottomPanel.add(changeStatus);
+        bottomPanel.add(changePrice);
+        // Adding components to the frame
+        frame.add(topPanel, BorderLayout.NORTH);         // Exit button at the top
+        frame.add(scrollPane, BorderLayout.CENTER);      // Table in the center
+        frame.add(bottomPanel, BorderLayout.SOUTH);     // Remove user button at the bottom
+        frame.revalidate();
+        frame.repaint();
+        frame.setVisible(true);
+    }
+    public void updateRoomStatus (JTable table, DefaultTableModel model) {
+        int selectRow = table.getSelectedRow();
+        if (selectRow != -1) {
+            int roomId = (int) model.getValueAt(selectRow, 0);
+            String currentStatus = (String) model.getValueAt(selectRow, 3);
+            String newStatus = currentStatus.equals("Yes") ? "No" : "Yes";
+            String updateQuery = "UPDATE room SET roomStatus = ? WHERE roomId = ?";
+            
+            try (Connection conn = MySQLConnection.getConnection();  // ✅ Get connection
+                PreparedStatement stmt = conn.prepareStatement(updateQuery)){
+                stmt.setString(1, newStatus);
+                stmt.setInt(2, roomId);
+                int rowsUpdated = stmt.executeUpdate();
+                if (rowsUpdated > 0) {
+                    model.setValueAt(newStatus, selectRow, 3);
+                    JOptionPane.showMessageDialog(null, "Room status updated successfully!");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error updating room status!");
+                }
+            } catch (SQLException e) {
+                System.out.println("Error update room Status: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select a room to update.");
+            return;
+        }
+    }
+    public void updateRoomPrice (JTable table, DefaultTableModel model) {
+        int selectRow = table.getSelectedRow();
+        if (selectRow != -1) {
+            int roomId = (int) model.getValueAt(selectRow, 0);
+            Object Price= model.getValueAt(selectRow, 2);
+            Double currentPrice;
+            if (Price instanceof Float) {
+                currentPrice = ((Float) Price).doubleValue();
+            } else if (Price instanceof Double) {
+                currentPrice = (Double) Price;
+            } else {
+                // Fallback if it's a string, in case the table model is inconsistent
+                currentPrice = Double.parseDouble(Price.toString());
+            }
+            String newPrice = JOptionPane.showInputDialog("Enter new price for room " + roomId + "(Current Price: " + currentPrice +  ")");
+            if (newPrice != null && !newPrice.trim().isEmpty()) {
+                String updateQuery = "UPDATE room SET roomPrice = ? WHERE roomId = ?";
+                try (Connection conn = MySQLConnection.getConnection();  // ✅ Get connection
+                    PreparedStatement stmt = conn.prepareStatement(updateQuery)){
+                    stmt.setString(1, newPrice);
+                    stmt.setInt(2, roomId);
+                    int rowsUpdated = stmt.executeUpdate();
+                    if (rowsUpdated > 0) {
+                        model.setValueAt(newPrice, selectRow, 2);
+                        JOptionPane.showMessageDialog(null, "Room price updated successfully!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error updating room price!");
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Error update room Status: " + e.getMessage());
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Invalid price input.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select a room to update.");
+            return;
+        }
+    }
+    public void viewAllReservation () {
+        JFrame frame = new JFrame("All Reservations");
+        frame.setSize(470,470);
+        frame.setLocationRelativeTo(null);
+    }
 }
