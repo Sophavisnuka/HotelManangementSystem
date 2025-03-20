@@ -83,10 +83,10 @@ public class LoginGui extends Form {
     private void loginUser() {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
-        // Create a new instance of User
         User user = new User();
-        // Try to log in with the provided credentials
         try {
+            CheckInputException.isEmptyInput(email);
+            CheckInputException.isEmptyInput(password);
             if (user.loginUser(email, password)) {
                 this.dispose();  // Close the login window on successful login
                 if (email.contains("@admin")) {
@@ -96,8 +96,7 @@ public class LoginGui extends Form {
                 }
             }
         } catch (CheckInputException e) {
-            // Handle input validation exception (optional)
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Validation Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

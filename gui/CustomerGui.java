@@ -119,7 +119,6 @@ public class CustomerGui extends JFrame {
                 }
             }
         });
-    
         // Adding components to the frame
         JPanel bottomPanel = new JPanel();
         JButton makeReservation = new JButton("Book Reservation");
