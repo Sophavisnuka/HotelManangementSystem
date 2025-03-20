@@ -8,9 +8,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import java.awt.BorderLayout;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Connection;
 import java.sql.SQLException;
 import gui.AdminGui;
 public class Admin extends User {
@@ -226,9 +226,85 @@ public class Admin extends User {
             return;
         }
     }
-    public void viewAllReservation () {
+    public void viewAllReservations() {
         JFrame frame = new JFrame("All Reservations");
-        frame.setSize(470,470);
+        frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
+        // Define column names
+        String[] columnNames = {"Reservation ID", "Room ID", "Room Type", "Check-in", "Check-out", "Duration"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        JTable table = new JTable(model);
+        // Adjust row height and font
+        table.setRowHeight(30);
+        table.setFont(new Font("Poppins", Font.PLAIN, 15));
+        String query = "SELECT reservationId, roomId, roomType, checkInDate, checkOutDate, durationOfStay FROM reservation";
+        try (ResultSet rs = MySQLConnection.executeQuery(query)) {
+            while (rs.next()) {
+                String reservationId = rs.getString("reservationId");
+                int roomId = rs.getInt("roomId");
+                String roomType = rs.getString("roomType");
+                String checkIn = rs.getString("checkInDate");
+                String checkOut = rs.getString("checkOutDate");
+                int duration = rs.getInt("durationOfStay");
+    
+                model.addRow(new Object[]{reservationId, roomId, roomType, checkIn, checkOut, duration});
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching reservations!");
+            e.printStackTrace();
+        }
+    
+        JScrollPane scrollPane = new JScrollPane(table);
+    
+        // Home button to return to Admin GUI
+        JLabel exit = new JLabel("Home");
+        exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        exit.setFont(new Font("Poppins", Font.PLAIN, 18));
+        exit.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (adminGui != null) {
+                    adminGui.dispose();
+                }
+                new AdminGui().setVisible(true);
+                frame.dispose();
+            }
+        });
+    
+        JPanel topPanel = new JPanel();
+        topPanel.add(exit);
+        JButton removeButton = new JButton("Remove Reservation");
+        removeButton.addActionListener(e -> removeReservation(table, model));
+    
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(removeButton);
+    
+        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+        frame.setVisible(true);
+    }
+    public void removeReservation(JTable table, DefaultTableModel model) {
+        int selectRow = table.getSelectedRow();
+        if (selectRow != -1) {
+            String reservationId = (String) model.getValueAt(selectRow, 0); // Get reservation ID from the table
+            int confirm = JOptionPane.showConfirmDialog(null, 
+                "Are you sure you want to delete this reservation?", 
+                "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+    
+            if (confirm == JOptionPane.YES_OPTION) {
+                String query = "DELETE FROM reservation WHERE reservationId = ?"; // SQL delete query
+                int rowAffected = MySQLConnection.executePreparedUpdate(query, reservationId);
+    
+                if (rowAffected > 0) {
+                    model.removeRow(selectRow); // Remove from JTable
+                    JOptionPane.showMessageDialog(null, "Reservation deleted successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Failed to delete reservation.");
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select a reservation to remove.");
+        }
     }
 }

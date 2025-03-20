@@ -6,7 +6,8 @@ import java.sql.SQLException;
 
 import javax.swing.JOptionPane;
 // User class implementing Authentication interface
-public class User {
+public class User implements Authentication {
+    @Override
     public boolean registerUser(String username, String phone, String email, String password) {
         try {
             // Validate inputs
@@ -33,7 +34,8 @@ public class User {
             return false;
         }
     }
-    public boolean loginUser(String loginEmail, String loginPassword) throws CheckInputException {
+    @Override
+    public boolean loginUser(String loginEmail, String loginPassword) {
         try {
             CheckInputException.isEmptyInput(loginEmail);
             CheckInputException.isEmptyInput(loginPassword);
@@ -54,6 +56,9 @@ public class User {
                     return true;
                 }
             }
+        } catch (CheckInputException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Database error during login!", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();

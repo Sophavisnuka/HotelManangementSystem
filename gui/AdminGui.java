@@ -32,7 +32,7 @@ public class AdminGui extends Form {
         add(viewCustomerLabel);
         //create button
         createButton("1. View Customer", 100, 100, e -> admin.viewUsers());
-        createButton("2. View Reservation", 100, 150, e -> System.out.println("Haven't do it yet"));
+        createButton("2. View Reservation", 100, 150, e -> admin.viewAllReservations());
         createButton("3. View All Rooms", 100, 200, e -> admin.loadRooms());
         // 6.exit
         JLabel exit = new JLabel("Exit");

@@ -12,7 +12,6 @@ import constant.commonConstant;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-
 public class RegisterGui extends Form {
     private JTextField usernameField, emailField, phoneNumberField;
     private JPasswordField passwordField;
@@ -109,12 +108,12 @@ public class RegisterGui extends Form {
         });
         add(loginLabel);
     }
+    // @Override
     private void registerUser() {
         String username = usernameField.getText();
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
         String phoneNumber = phoneNumberField.getText();
-
         if (user.registerUser(username, phoneNumber, email, password)) {
             this.dispose(); // Close registration form
             new CustomerGui().setVisible(true); // Open login form
