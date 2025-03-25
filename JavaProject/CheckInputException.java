@@ -14,9 +14,10 @@ public class CheckInputException extends Exception {
             throw new CheckInputException("You can only input number!");
         }
     }
-    public static void isEmptyInput (String input) throws CheckInputException{
-        if (input.trim().isEmpty()) {
+    public static void isEmptyInput(String input) throws CheckInputException {
+        if (input == null || input.trim().isEmpty()) {  // ✅ Use trim() to remove spaces
             throw new CheckInputException("Input can't be empty");
         }
     }
+    
 }
