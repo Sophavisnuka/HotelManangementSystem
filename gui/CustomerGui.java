@@ -17,16 +17,17 @@ import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import JavaProject.MySQLConnection;
-
 import java.awt.event.ActionListener;
+
 public class CustomerGui extends JFrame {
-    JPanel panel;
-    // private int currentUserId;
-    public CustomerGui () {
-        super("Admin Menu");
+    // private int userId; // Store the userId here
+
+    // Constructor now accepts userId as a parameter
+    public CustomerGui() {
+        super("Customer");
+        // this.userId = userId;  // Store userId
         setSize(520, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        //place the gui in the middle
         setLayout(null); 
         setLocationRelativeTo(null);
         setResizable(false);
@@ -42,10 +43,11 @@ public class CustomerGui extends JFrame {
         add(viewCustomerLabel);
         //create button
         createButton("1. View Room", 100, 100, e -> loadRooms());
-        createButton("2. View Invoice", 100, 150, e -> System.out.println("Not yet implement"));
+        createButton("2. View Invoice", 100, 150, e -> showInvoice());
+        createButton("3. Cancel Reservation", 100, 200, e -> cancelReservation());
         // 6.exit
         JLabel exit = new JLabel("Exit");
-        exit.setBounds(100, 200,300,35);
+        exit.setBounds(100, 250,300,35);
         exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         exit.setForeground(commonConstant.TEXT_COLOR);
         exit.setFont(new Font("Poppins", Font.PLAIN, 18));
@@ -68,7 +70,7 @@ public class CustomerGui extends JFrame {
         button.addActionListener(action);
         add(button);
     }
-    public void loadRooms() {
+    private void loadRooms() {
         JFrame frame = new JFrame("All Rooms");
         frame.setSize(470,350);
         frame.setLocationRelativeTo(null);
@@ -124,14 +126,16 @@ public class CustomerGui extends JFrame {
         JButton makeReservation = new JButton("Book Reservation");
         makeReservation.addActionListener(e -> {
             if (selectedRoomId[0] != -1 && selectedRoomType[0] != null) {
-                new ReservationGui(selectedRoomId[0], selectedRoomType[0]);  // Open reservation
+                new ReservationGui(selectedRoomId[0], selectedRoomType[0]);  // Pass userId
                 frame.dispose();
             } else {
-                System.out.println("Please select a room first!");  // Handle case where no row is selected
+                JOptionPane.showMessageDialog(frame, "Please select a room first!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+        
+
         JButton cancelReservation = new JButton("Cancel Reservation");
-        cancelReservation.addActionListener(e -> System.out.println("Not yet implement"));
+        cancelReservation.addActionListener(e -> cancelReservation());
         bottomPanel.add(makeReservation);
         bottomPanel.add(cancelReservation);
         //add exit button
@@ -157,4 +161,64 @@ public class CustomerGui extends JFrame {
         frame.repaint();
         frame.setVisible(true);
     }
+    private void cancelReservation() {
+        // String userId = "USER_ID_HERE"; // Replace with actual user ID from session/login
+        String checkReservationQuery = "SELECT reservationId, roomId FROM reservation WHERE ";
+    
+        try {
+            ResultSet rs = MySQLConnection.executeQuery(checkReservationQuery);
+            if (rs.next()) {
+                int reservationId = rs.getInt("reservationId");
+                int roomId = rs.getInt("roomId");
+    
+                // Delete the reservation
+                String deleteQuery = "DELETE FROM reservation WHERE reservationId = " + reservationId;
+                int rowsAffected = MySQLConnection.executeUpdate(deleteQuery);
+    
+                // Update room status to available
+                if (rowsAffected > 0) {
+                    String updateRoomQuery = "UPDATE room SET roomStatus = 'available' WHERE roomId = " + roomId;
+                    MySQLConnection.executeUpdate(updateRoomQuery);
+                    JOptionPane.showMessageDialog(this, "Reservation canceled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No reservation found to cancel!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error canceling reservation!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+    private void showInvoice() {
+        String userId = "USER_ID_HERE"; // Replace with actual user ID from session/login
+        String query = "SELECT invoiceId, roomId, totalAmount, paymentStatus FROM invoice WHERE userId = '" + userId + "'";
+    
+        JFrame frame = new JFrame("Your Invoice");
+        frame.setSize(470, 300);
+        frame.setLocationRelativeTo(null);
+    
+        String[] columnNames = {"Invoice ID", "Room ID", "Total Amount", "Payment Status"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        JTable table = new JTable(model);
+    
+        try {
+            ResultSet rs = MySQLConnection.executeQuery(query);
+            while (rs.next()) {
+                int invoiceId = rs.getInt("invoiceId");
+                int roomId = rs.getInt("roomId");
+                double totalAmount = rs.getDouble("totalAmount");
+                String paymentStatus = rs.getString("paymentStatus");
+    
+                model.addRow(new Object[]{invoiceId, roomId, totalAmount, paymentStatus});
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading invoices!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    
+        JScrollPane scrollPane = new JScrollPane(table);
+        frame.add(scrollPane);
+        frame.setVisible(true);
+    }
+    
 }

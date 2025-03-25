@@ -32,8 +32,8 @@ public class MainProject {
                 int choice = Integer.parseInt(input);
                 switch (choice) {
                     case 1:
-                        // Admin AdminMenu = new Admin();
-                        // AdminMenu.adminMenu(scan);
+                        Admin AdminMenu = new Admin();
+                        AdminMenu.adminMenu(scan);
                         break;
                     case 2:
                         BookingMenu book = new BookingMenu();
