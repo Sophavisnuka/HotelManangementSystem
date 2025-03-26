@@ -10,6 +10,7 @@ import JavaProject.MySQLConnection;
 public class UserInterface implements Authentication {
     public static int userId;
     private String role;
+    
     public static int getUserId() {
         return userId;
     }

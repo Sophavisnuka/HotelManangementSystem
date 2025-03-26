@@ -25,7 +25,7 @@ public class RegisterGui extends Form {
         getContentPane().setBackground(commonConstant.PRIMARY_COLOR);
     }
     @Override
-    protected void addGuiComponents () {
+    void addGuiComponents () {
         // Register Title
         JLabel registerLabel = createLabel("Register", 0, 0, 520, 100, 40);
         registerLabel.setHorizontalAlignment(SwingConstants.CENTER);

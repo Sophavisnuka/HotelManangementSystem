@@ -23,7 +23,7 @@ public class LoginGui extends Form {
         addGuiComponents();
     }
     @Override
-    protected void addGuiComponents() {
+    void addGuiComponents() {
         // createLabel("Login", 0, 25, 520, 100, 40);
         JLabel loginLabel = createLabel("Login", 0, 0, 520, 100, 40);
         loginLabel.setHorizontalAlignment(SwingConstants.CENTER);

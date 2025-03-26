@@ -211,36 +211,27 @@ public class CustomerGui extends JFrame {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void showInvoice() {
-        String userId = "USER_ID_HERE"; // Replace with actual user ID from session/login
-        String query = "SELECT invoiceId, roomId, totalAmount, paymentStatus FROM invoice WHERE userId = '" + userId + "'";
-    
-        JFrame frame = new JFrame("Your Invoice");
-        frame.setSize(470, 300);
-        frame.setLocationRelativeTo(null);
-    
-        String[] columnNames = {"Invoice ID", "Room ID", "Total Amount", "Payment Status"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        JTable table = new JTable(model);
-    
-        try {
-            ResultSet rs = MySQLConnection.executeQuery(query);
-            while (rs.next()) {
-                int invoiceId = rs.getInt("invoiceId");
-                int roomId = rs.getInt("roomId");
-                double totalAmount = rs.getDouble("totalAmount");
-                String paymentStatus = rs.getString("paymentStatus");
-    
-                model.addRow(new Object[]{invoiceId, roomId, totalAmount, paymentStatus});
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading invoices!", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        String invoiceId = getLatestInvoiceForUser(UserInterface.userId);
+        if (invoiceId != null) {
+            new InvoiceGui(UserInterface.userId, invoiceId).setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "No invoices found for this user", "Information", JOptionPane.INFORMATION_MESSAGE);
         }
-    
-        JScrollPane scrollPane = new JScrollPane(table);
-        frame.add(scrollPane);
-        frame.setVisible(true);
     }
+    
+    private String getLatestInvoiceForUser(int userId) {
+        try (Connection conn = MySQLConnection.getConnection()) {
+            String query = "SELECT invoiceId FROM invoice WHERE userId = ? ORDER BY createdDate DESC LIMIT 1";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getString("invoiceId") : null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
 }

@@ -30,8 +30,8 @@ public class AdminGui extends Form  {
         super("Admin Menu");
         addGuiComponents();
     }
-    @Override
-    protected void addGuiComponents () {  
+    
+    void addGuiComponents () {  
         JLabel viewCustomerLabel = new JLabel("Welcome! Admin");
         viewCustomerLabel.setBounds(0, 25, 520, 100);
         viewCustomerLabel.setForeground(commonConstant.TEXT_COLOR);

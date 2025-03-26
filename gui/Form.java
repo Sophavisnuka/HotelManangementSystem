@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import constant.commonConstant;
 
-public class Form extends JFrame {
+abstract class Form extends JFrame {
 
     public Form (String title) {
         super(title);
@@ -55,9 +55,6 @@ public class Form extends JFrame {
         return passwordField;
     }
 
-    protected void addGuiComponents () {
-        System.out.println("Add component");
-    }
+    abstract void addGuiComponents ();
 
-    
 }
