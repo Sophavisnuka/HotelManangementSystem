@@ -14,14 +14,14 @@ import java.awt.BorderLayout;
 import constant.commonConstant;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import JavaProject.MySQLConnection;
 import java.awt.event.ActionListener;
 
 public class CustomerGui extends JFrame {
-    // private int userId; // Store the userId here
-
     // Constructor now accepts userId as a parameter
     public CustomerGui() {
         super("Customer");
@@ -45,6 +45,7 @@ public class CustomerGui extends JFrame {
         createButton("1. View Room", 100, 100, e -> loadRooms());
         createButton("2. View Invoice", 100, 150, e -> showInvoice());
         createButton("3. Cancel Reservation", 100, 200, e -> cancelReservation());
+
         // 6.exit
         JLabel exit = new JLabel("Exit");
         exit.setBounds(100, 250,300,35);
@@ -126,18 +127,16 @@ public class CustomerGui extends JFrame {
         JButton makeReservation = new JButton("Book Reservation");
         makeReservation.addActionListener(e -> {
             if (selectedRoomId[0] != -1 && selectedRoomType[0] != null) {
-                new ReservationGui(selectedRoomId[0], selectedRoomType[0]);  // Pass userId
+                new ReservationGui(selectedRoomId[0], selectedRoomType[0]);
                 frame.dispose();
             } else {
                 JOptionPane.showMessageDialog(frame, "Please select a room first!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        
-
-        JButton cancelReservation = new JButton("Cancel Reservation");
-        cancelReservation.addActionListener(e -> cancelReservation());
+        // JButton cancelReservation = new JButton("Cancel Reservation");
+        // cancelReservation.addActionListener(e -> cancelReservation());
+        // bottomPanel.add(cancelReservation);
         bottomPanel.add(makeReservation);
-        bottomPanel.add(cancelReservation);
         //add exit button
         JLabel exit = new JLabel("Home");
         exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -162,33 +161,57 @@ public class CustomerGui extends JFrame {
         frame.setVisible(true);
     }
     private void cancelReservation() {
-        // String userId = "USER_ID_HERE"; // Replace with actual user ID from session/login
-        String checkReservationQuery = "SELECT reservationId, roomId FROM reservation WHERE ";
+        // Ask user for Reservation ID and Room ID
+        String reservationId = JOptionPane.showInputDialog("Enter Reservation ID to cancel:");
+        String roomId = JOptionPane.showInputDialog("Enter Room ID for confirmation:");
     
-        try {
-            ResultSet rs = MySQLConnection.executeQuery(checkReservationQuery);
-            if (rs.next()) {
-                int reservationId = rs.getInt("reservationId");
-                int roomId = rs.getInt("roomId");
+        if (reservationId == null || roomId == null || reservationId.isEmpty() || roomId.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Reservation ID and Room ID cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
     
-                // Delete the reservation
-                String deleteQuery = "DELETE FROM reservation WHERE reservationId = " + reservationId;
-                int rowsAffected = MySQLConnection.executeUpdate(deleteQuery);
+        // Verify if the reservation exists in the database
+        String queryCheck = "SELECT * FROM reservation WHERE reservationId = ? AND roomId = ?";
+        try (Connection conn = MySQLConnection.getConnection();
+            PreparedStatement stmtCheck = conn.prepareStatement(queryCheck)) {
     
-                // Update room status to available
-                if (rowsAffected > 0) {
-                    String updateRoomQuery = "UPDATE room SET roomStatus = 'available' WHERE roomId = " + roomId;
-                    MySQLConnection.executeUpdate(updateRoomQuery);
-                    JOptionPane.showMessageDialog(this, "Reservation canceled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            stmtCheck.setString(1, reservationId);
+            stmtCheck.setString(2, roomId);
+            ResultSet rs = stmtCheck.executeQuery();
+    
+            if (!rs.next()) {
+                JOptionPane.showMessageDialog(null, "No matching reservation found.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            // Confirm cancellation
+            int confirm = JOptionPane.showConfirmDialog(null, 
+                "Are you sure you want to cancel this reservation?", 
+                "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
+    
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Delete from the database
+                String queryDelete = "DELETE FROM reservation WHERE reservationId = ? AND roomId = ?";
+                try (PreparedStatement stmtDelete = conn.prepareStatement(queryDelete)) {
+                    stmtDelete.setString(1, reservationId);
+                    stmtDelete.setString(2, roomId);
+                    int rowsDeleted = stmtDelete.executeUpdate();
+    
+                    if (rowsDeleted > 0) {
+                        JOptionPane.showMessageDialog(null, "Reservation canceled successfully.");
+    
+                        // Refresh the table
+                        loadRooms(); // Reload rooms to reflect changes
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Failed to cancel reservation.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "No reservation found to cancel!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error canceling reservation!", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
     private void showInvoice() {
         String userId = "USER_ID_HERE"; // Replace with actual user ID from session/login
         String query = "SELECT invoiceId, roomId, totalAmount, paymentStatus FROM invoice WHERE userId = '" + userId + "'";
@@ -220,5 +243,4 @@ public class CustomerGui extends JFrame {
         frame.add(scrollPane);
         frame.setVisible(true);
     }
-    
 }
