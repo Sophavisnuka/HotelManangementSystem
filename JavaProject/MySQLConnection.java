@@ -11,7 +11,7 @@ public class MySQLConnection {
 
     private static final String URL = "jdbc:mysql://localhost:3306/hotelSystem"; //change hotelSystem to your database
     private static final String USERNAME = "root"; 
-    private static final String PASSWORD = "1234"; //change password
+    private static final String PASSWORD = "Lyming@08"; //change password
     
     // Establish the connection
     public static Connection getConnection() throws SQLException {

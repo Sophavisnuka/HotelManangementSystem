@@ -88,12 +88,17 @@ public class ReservationGui extends Form {
             if (rowsInserted > 0) {
                 // Create invoice after successful reservation
                 String invoiceId = generateInvoiceId();
-                String invoiceQuery = "INSERT INTO invoice (invoiceId, userId, totalPrice, status) VALUES (?, ?, ?, ?)";
+                String invoiceQuery = "INSERT INTO invoice (invoiceId, userId, totalPrice, status,reservationId,amountNight,roomId) VALUES (?, ?, ?, ?,?,?,?)";
                 PreparedStatement invoiceStmt = conn.prepareStatement(invoiceQuery);
                 invoiceStmt.setString(1, invoiceId);
                 invoiceStmt.setInt(2, UserInterface.userId);
                 invoiceStmt.setDouble(3, totalPrice);
                 invoiceStmt.setString(4, "Pending"); // Initial status
+                invoiceStmt.setString(5, reservationId);
+                invoiceStmt.setInt(6, duration);
+                invoiceStmt.setInt(7, roomId);
+
+
                 
                 int invoiceRows = invoiceStmt.executeUpdate();
                 if (invoiceRows > 0) {
