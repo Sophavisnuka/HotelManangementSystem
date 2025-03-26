@@ -23,8 +23,8 @@ public class ReservationGui extends Form {
         this.roomType = roomType;
         addGuiComponents();
     }
-    @Override
-    protected void addGuiComponents() {
+    
+    void addGuiComponents() {
         JLabel reservationLabel = createLabel("Reservation", 0, 0, 520, 100, 20);
         reservationLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
@@ -55,7 +55,7 @@ public class ReservationGui extends Form {
                 return;
             }
     
-            // Validate check-in and check-out dates
+            // Validate dates and calculate duration (existing code)
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate checkIn = validateDateFormat(checkInField.getText(), formatter);
             LocalDate checkOut = validateDateFormat(checkOutField.getText(), formatter);
@@ -64,31 +64,81 @@ public class ReservationGui extends Form {
                 return;
             }
     
-            // Calculate duration
             int duration = (int) (checkOut.toEpochDay() - checkIn.toEpochDay());
             String reservationId = generateReservationId();
     
-            // Insert reservation into the database
-            String query = "INSERT INTO reservation (userId, reservationId , roomId, roomType, checkInDate, checkOutDate, durationOfStay) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setInt(1, UserInterface.userId); // Insert the userId
-            stmt.setString(2, reservationId);
-            stmt.setInt(3, roomId);
-            stmt.setString(4, roomType);
-            stmt.setDate(5, java.sql.Date.valueOf(checkIn));
-            stmt.setDate(6, java.sql.Date.valueOf(checkOut));
-            stmt.setInt(7, duration);
+            // Get room price
+            double roomPrice = getRoomPrice(roomId);
     
-            int rowsInserted = stmt.executeUpdate();
+            // Calculate total price (price * duration)
+            double totalPrice = roomPrice * duration;
+    
+            // Insert reservation
+            String reservationQuery = "INSERT INTO reservation (userId, reservationId, roomId, roomType, checkInDate, checkOutDate, durationOfStay) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement reservationStmt = conn.prepareStatement(reservationQuery);
+            reservationStmt.setInt(1, UserInterface.userId);
+            reservationStmt.setString(2, reservationId);
+            reservationStmt.setInt(3, roomId);
+            reservationStmt.setString(4, roomType);
+            reservationStmt.setDate(5, java.sql.Date.valueOf(checkIn));
+            reservationStmt.setDate(6, java.sql.Date.valueOf(checkOut));
+            reservationStmt.setInt(7, duration);
+    
+            int rowsInserted = reservationStmt.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(this, "Reservation successful! ID: " + reservationId, "Success", JOptionPane.INFORMATION_MESSAGE);
-                dispose();  // Close the current reservation window
+                // Create invoice after successful reservation
+                String invoiceId = generateInvoiceId();
+                String invoiceQuery = "INSERT INTO invoice (invoiceId, userId, totalPrice, status) VALUES (?, ?, ?, ?)";
+                PreparedStatement invoiceStmt = conn.prepareStatement(invoiceQuery);
+                invoiceStmt.setString(1, invoiceId);
+                invoiceStmt.setInt(2, UserInterface.userId);
+                invoiceStmt.setDouble(3, totalPrice);
+                invoiceStmt.setString(4, "Pending"); // Initial status
+                
+                int invoiceRows = invoiceStmt.executeUpdate();
+                if (invoiceRows > 0) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Reservation successful!\n" +
+                        "Reservation ID: " + reservationId + "\n" +
+                        "Invoice ID: " + invoiceId, 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    new InvoiceGui(UserInterface.userId, invoiceId);
+                    dispose();
+                }
             }
-        }catch (InvalidDateFormatException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Invalid Date Format", JOptionPane.ERROR_MESSAGE);
+        } catch (InvalidDateFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } 
+            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private double getRoomPrice(int roomId) throws SQLException {
+        String query = "SELECT roomPrice FROM room WHERE roomId = ?";
+        try (Connection conn = MySQLConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, roomId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("roomPrice");
+            }
+        }
+        throw new SQLException("Room not found or price not available");
+    }
+    
+    private String generateInvoiceId() throws SQLException {
+        Connection conn = MySQLConnection.getConnection();
+        String query = "SELECT invoiceId FROM invoice ORDER BY CAST(SUBSTRING(invoiceId, 2) AS UNSIGNED) DESC LIMIT 1";
+        
+        ResultSet rs = conn.createStatement().executeQuery(query);
+    
+        if (rs.next()) {
+            String lastInvoiceId = rs.getString("invoiceId");
+            int lastIdNumber = Integer.parseInt(lastInvoiceId.substring(1));
+            return "I" + (lastIdNumber + 1);
+        } else {
+            return "I1";
+        }
     }
     
     private LocalDate validateDateFormat(String dateStr, DateTimeFormatter formatter) throws InvalidDateFormatException {

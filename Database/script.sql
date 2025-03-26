@@ -33,6 +33,20 @@ CREATE TABLE reservation (
     FOREIGN KEY (userId) REFERENCES users(userId)  -- Corrected foreign key reference
 );
 
+CREATE TABLE invoice (
+    invoiceId VARCHAR(10) PRIMARY KEY,  -- Example: I1, I2, I3
+    userId INT,
+    reservationId VARCHAR(10),
+    roomId INT,
+    roomType VARCHAR(50),
+    totalPrice DECIMAL(10,2),
+    status ENUM('Pending', 'Paid') DEFAULT 'Pending',
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(userId),
+    FOREIGN KEY (reservationId) REFERENCES reservation(reservationId),
+    FOREIGN KEY (roomId) REFERENCES room(roomId)
+);
+
 -- Fix: Add reservationId as foreign key in room if necessary
 ALTER TABLE users ADD COLUMN role enum('admin', 'customer') NOT NULL DEFAULT 'customer';
 ALTER TABLE room ADD COLUMN reservationId VARCHAR(10);
