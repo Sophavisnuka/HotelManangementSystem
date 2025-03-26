@@ -16,13 +16,14 @@ import constant.commonConstant;
 public class LoginGui extends Form {
     private JTextField emailField;
     private JPasswordField passwordField;
-
+    private String email, password;
     public LoginGui () {
         super("Login");
-        addGuiComponents();
         getContentPane().setBackground(commonConstant.PRIMARY_COLOR);
+        addGuiComponents();
     }
-    private void addGuiComponents() {
+    @Override
+    protected void addGuiComponents() {
         // createLabel("Login", 0, 25, 520, 100, 40);
         JLabel loginLabel = createLabel("Login", 0, 0, 520, 100, 40);
         loginLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -57,8 +58,8 @@ public class LoginGui extends Form {
         add(registerLabel);
     }
     private void loginUser() {
-        String email = emailField.getText();
-        String password = new String(passwordField.getPassword());
+        email = emailField.getText();
+        password = new String(passwordField.getPassword());
         UserInterface user = new UserInterface();
         try {
             CheckInputException.isEmptyInput(email);

@@ -54,4 +54,10 @@ public class Form extends JFrame {
         add(passwordField);
         return passwordField;
     }
+
+    protected void addGuiComponents () {
+        System.out.println("Add component");
+    }
+
+    
 }

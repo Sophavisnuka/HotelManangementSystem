@@ -28,10 +28,10 @@ public class AdminGui extends Form  {
     // private Admin admin;
     public AdminGui () {
         super("Admin Menu");
-        // admin = new Admin();
         addGuiComponents();
     }
-    private void addGuiComponents () {  
+    @Override
+    protected void addGuiComponents () {  
         JLabel viewCustomerLabel = new JLabel("Welcome! Admin");
         viewCustomerLabel.setBounds(0, 25, 520, 100);
         viewCustomerLabel.setForeground(commonConstant.TEXT_COLOR);
@@ -331,24 +331,35 @@ public class AdminGui extends Form  {
         frame.add(bottomPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
     }
-    
     public void removeReservation(JTable table, DefaultTableModel model) {
         int selectRow = table.getSelectedRow();
+    
         if (selectRow != -1) {
-            String reservationId = (String) model.getValueAt(selectRow, 0); // Get reservation ID from the table
-            int confirm = JOptionPane.showConfirmDialog(null, 
-                "Are you sure you want to delete this reservation?", 
-                "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+            // Get the reservation ID from the selected row (assumes reservationId is in column 1)
+            String reservationId = model.getValueAt(selectRow, 1).toString(); // Assuming reservationId is in column 1
+            
+            int confirm = JOptionPane.showConfirmDialog(null,
+                    "Are you sure you want to remove this reservation?",
+                    "Confirm Removal", JOptionPane.YES_NO_OPTION);
     
             if (confirm == JOptionPane.YES_OPTION) {
-                String query = "DELETE FROM reservation WHERE reservationId = ?"; // SQL delete query
-                int rowAffected = MySQLConnection.executePreparedUpdate(query, reservationId);
+                // Delete from database
+                String query = "DELETE FROM reservation WHERE reservationId = ?";
+                try (Connection conn = MySQLConnection.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(query)) {
     
-                if (rowAffected > 0) {
-                    model.removeRow(selectRow); // Remove from JTable
-                    JOptionPane.showMessageDialog(null, "Reservation deleted successfully.");
-                } else {
-                    JOptionPane.showMessageDialog(null, "Failed to delete reservation.");
+                    stmt.setString(1, reservationId); // Set the correct reservationId
+                    int rowsDeleted = stmt.executeUpdate();
+    
+                    if (rowsDeleted > 0) {
+                        // Remove from JTable after successful database deletion
+                        model.removeRow(selectRow);
+                        JOptionPane.showMessageDialog(null, "Reservation removed successfully.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Reservation not found in database.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
